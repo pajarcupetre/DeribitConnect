@@ -1,0 +1,23 @@
+
+version: '3.7'
+services:
+    postgres:
+        image: postgres:10.5
+        restart: always
+        environment:
+          - POSTGRES_USER=deribitconnect
+          - POSTGRES_PASSWORD=deribitconnect
+          - POSTGRES_DB=deribit
+        logging:
+          options:
+            max-size: 10m
+            max-file: "3"
+        volumes: 
+          - ./postgres-data:/var/lib/postgresql/data
+          # copy the sql script to create tables
+          - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+        network_mode: host
+    deribit-connect:
+        image: deribit-connect:1.0-SNAPSHOT
+        build: .
+        network_mode: host
