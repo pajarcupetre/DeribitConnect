@@ -1,12 +1,14 @@
 package utils
 
-import models.{AccountBalanceInfo, CurrencyHolding, DepositDetails, DepositResponse, HistoryTransactions, InternalMoveDoneDetails, InternalMoveResponse, PortfolioResponse, SubAccountPortfolioDetails, WithdrawDoneResponse, WithdrawalDetails, WithdrawalDoneDetails, WithdrawalsResponse}
+import exceptions.MoveExternalException
+import models.{AccountBalanceInfo, CurrencyHolding, DepositDetails, DepositResponse, ErrorResponse, HistoryTransactions, InternalMoveDoneDetails, InternalMoveResponse, PortfolioResponse, SubAccountPortfolioDetails, WithdrawDoneResponse, WithdrawalDetails, WithdrawalDoneDetails, WithdrawalsResponse}
 import play.api.libs.json.Json
 import play.api.libs.ws.WSRequest
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 trait AccountHandler {
 
@@ -97,7 +99,15 @@ trait AccountHandler {
     val response = request.addHttpHeaders("Authorization" -> s"Bearer ${deribitConnection.getAuthenticationDetails.access_token}").get()
     response.map(
       withdrawResponse => {
-        Json.parse(Json.stringify(withdrawResponse.json)).as[WithdrawDoneResponse].result
+        println(withdrawResponse.json)
+        Try {
+          Json.parse(Json.stringify(withdrawResponse.json)).as[WithdrawDoneResponse].result
+        } match {
+          case Success(value) => value
+          case Failure(_) => {
+            throw new MoveExternalException(Json.parse(Json.stringify(withdrawResponse.json)).as[ErrorResponse].error)
+          }
+        }
       }
     )
   }
@@ -109,6 +119,7 @@ trait AccountHandler {
     val response = request.addHttpHeaders("Authorization" -> s"Bearer ${deribitConnection.getAuthenticationDetails.access_token}").get()
     response.map(
       withdrawResponse => {
+        println(withdrawResponse.json)
         Json.parse(Json.stringify(withdrawResponse.json)).as[InternalMoveResponse].result
       }
     )
