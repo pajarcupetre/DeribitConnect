@@ -1,0 +1,8 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# https://www.playframework.com/documentation/latest/ScalaRouting
+# ~~~~
+
+GET     /getAccountBalance                       controllers.AccountController.getAccountBalance(clientId: String ?= "", clientSecret:String ?= "", onlyMain:Boolean ?=false)
+
+GET     /getHistoricTransactions                       controllers.AccountController.getHistory(clientId: String ?= "", clientSecret:String ?= "")
